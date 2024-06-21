@@ -1,0 +1,195 @@
+---
+title: "Untitled"
+format: pdf
+editor: visual
+---
+
+## Quarto
+
+```{r}
+library(readr)
+library(data.table)
+dengue = read_csv('~/Downloads/Compressed/dengue_data_all_municipalities.csv')
+```
+
+```{r}
+data <- data.table(
+  Municipality_id = dengue$`Municipality code`,
+  Population2007 = dengue$Population2007,
+  Population2008 = dengue$Population2008,
+  Population2009 = dengue$Population2009,
+  Population2010 = dengue$Population2010,
+  Population2011 = dengue$Population2011,
+  Population2012 = dengue$Population2012,
+  Population2013 = dengue$Population2013,
+  Population2014 = dengue$Population2014,
+  Population2015 = dengue$Population2015,
+  Population2016 = dengue$Population2016,
+  Population2017 = dengue$Population2017,
+  Population2018 = dengue$Population2018,
+  Population2019 = dengue$Population2019
+  
+)
+```
+
+```{r}
+melted_popu <- melt(data, id.vars = "Municipality_id", variable.name = "Year", value.name = "Population")
+```
+
+```{r}
+melted_popu[, Year := as.integer(sub("Population", "", Year))]
+melted_popu$Year = paste(melted_popu$Year,"-01-01",sep = '')
+melted_popu$casesID = seq.int(nrow(melted_popu))
+melted_popu = melted_popu[,c(4,1,2,3)]
+```
+
+```{r}
+print(melted_popu)
+write_csv(melted_popu,file = 'population.csv')
+```
+
+```{r}
+# Load the data.table package
+library(data.table)
+
+# Example: Assume the data is already loaded into 'data'
+# Read data from a CSV file (assuming the data is in a file)
+data <- fread("Downloads/Compressed/dengue_data_all_municipalities.csv_1/dengue_data_all_municipalities.csv")
+
+# Let's assume the first column is Municipality ID and the rest are temperature columns
+# Select columns that match the pattern TEMPERATURE_{month}_{year}
+cases_columns <- colnames(data[,342:1017])
+
+# Subset the data to keep only Municipality ID and the selected temperature columns
+data_subset <- data[, c("Municipality code", cases_columns), with = FALSE]
+
+# Reshape the data.table using melt
+casos_data <- melt(data_subset, id.vars = "Municipality code", variable.name = "Date", value.name = "Cases")
+
+# Split the 'Month_Year' column to 'Month' and 'Year' if needed (not necessary for your requirement)
+# melted_data[, c("Month", "Year") := tstrsplit(Month_Year, "_", fixed=TRUE)]
+
+# Display the resulting data.table
+print(casos_data)
+casos_data$casesID = seq.int(nrow(casos_data))
+casos_data = casos_data[,c(4,1,2,3)]
+casos_data$Date = gsub('/w','-W',casos_data$Date)
+casos_data$Date = ISOweek2date(paste(casos_data$Date,"-1",sep = ''))
+write_csv(casos_data,file = 'cases.csv')
+```
+
+```{r}
+# Load the data.table package
+library(data.table)
+
+# Example: Assume the data is already loaded into 'data'
+# Read data from a CSV file (assuming the data is in a file)
+data <- fread("Downloads/Compressed/dengue_data_all_municipalities.csv")
+
+# Let's assume the first column is Municipality ID and the rest are temperature columns
+# Select columns that match the pattern TEMPERATURE_{month}_{year}
+temperature_columns <- grep("TEMPERATURE_.*_\\d{2}", names(data), value = TRUE)
+
+# Subset the data to keep only Municipality ID and the selected temperature columns
+data_subset <- data[, c("Municipality code", temperature_columns), with = FALSE]
+
+# Reshape the data.table using melt
+temp_data <- melt(data_subset, id.vars = "Municipality code", variable.name = "Month_Year", value.name = "Temperature")
+
+# Split the 'Month_Year' column to 'Month' and 'Year' if needed (not necessary for your requirement)
+# melted_data[, c("Month", "Year") := tstrsplit(Month_Year, "_", fixed=TRUE)]
+
+# Display the resulting data.table
+print(temp_data)
+```
+
+```{r}
+temp_data[, c("Temp", "Month","Year") := tstrsplit(Month_Year, "_", fixed=TRUE)]
+
+temp_data[, Month := gsub("jan", "01", Month)]
+temp_data[, Month := gsub("feb", "02", Month)]
+temp_data[, Month := gsub("mar", "03", Month)]
+temp_data[, Month := gsub("apr", "04", Month)]
+temp_data[, Month := gsub("may", "05", Month)]
+temp_data[, Month := gsub("jun", "06", Month)]
+temp_data[, Month := gsub("jul", "07", Month)]
+temp_data[, Month := gsub("aug", "08", Month)]
+temp_data[, Month := gsub("sep", "09", Month)]
+temp_data[, Month := gsub("oct", "10", Month)]
+temp_data[, Month := gsub("nov", "11", Month)]
+temp_data[, Month := gsub("dec", "12", Month)]
+
+temp_data[,"Day"]=1
+temp_data[,"Year"]=paste("20",temp_data$Year,sep = "")
+temp_data[,"Date"]=paste(temp_data$Year,"-",temp_data$Month,"-",temp_data$Day,sep = "")
+
+temp = temp_data[,c('Municipality code','Date','Temperature')]
+
+temp$casesID = seq.int(nrow(temp))
+temp = temp[,c(4,1,2,3)]
+write_csv(temp,file = 'temperature.csv')
+```
+
+```{r}
+# Load the data.table package
+library(data.table)
+
+# Example: Assume the data is already loaded into 'data'
+# Read data from a CSV file (assuming the data is in a file)
+data <- fread("Downloads/Compressed/dengue_data_all_municipalities.csv")
+# Let's assume the first column is Municipality ID and the rest are temperature columns
+# Select columns that match the pattern TEMPERATURE_{month}_{year}
+precipitation_columns <- grep("PRECIPITATION_.*_\\d{2}", names(data), value = TRUE)
+
+# Subset the data to keep only Municipality ID and the selected temperature columns
+data_subset <- data[, c("Municipality code", precipitation_columns), with = FALSE]
+
+# Reshape the data.table using melt
+preci_data <- melt(data_subset, id.vars = "Municipality code", variable.name = "Month_Year", value.name = "Precipitation")
+
+# Split the 'Month_Year' column to 'Month' and 'Year' if needed (not necessary for your requirement)
+# melted_data[, c("Month", "Year") := tstrsplit(Month_Year, "_", fixed=TRUE)]
+
+# Display the resulting data.table
+print(preci_data)
+```
+
+```{r}
+preci_data[, c("Preci", "Month","Year") := tstrsplit(Month_Year, "_", fixed=TRUE)]
+```
+
+```{r}
+preci_data
+preci_data[, Month := gsub("jan", "01", Month)]
+preci_data[, Month := gsub("feb", "02", Month)]
+preci_data[, Month := gsub("mar", "03", Month)]
+preci_data[, Month := gsub("apr", "04", Month)]
+preci_data[, Month := gsub("may", "05", Month)]
+preci_data[, Month := gsub("jun", "06", Month)]
+preci_data[, Month := gsub("jul", "07", Month)]
+preci_data[, Month := gsub("aug", "08", Month)]
+preci_data[, Month := gsub("sep", "09", Month)]
+preci_data[, Month := gsub("oct", "10", Month)]
+preci_data[, Month := gsub("nov", "11", Month)]
+preci_data[, Month := gsub("dec", "12", Month)]
+
+preci_data[,"Day"]=1
+preci_data[,"Year"]=paste("20",preci_data$Year,sep = "")
+preci_data[,"Date"]=paste(preci_data$Year,"-",preci_data$Month,"-",preci_data$Day,sep = "")
+preci = preci_data[,c('Municipality code','Date','Precipitation')]
+
+preci$casesID = seq.int(nrow(preci))
+preci = preci[,c(4,1,2,3)]
+write_csv(preci,file = 'precipitation.csv')
+```
+
+```{r}
+municipalidad = dengue[,c(1,2,29:53)]
+municipalidad
+write_csv(municipalidad,file = 'municipality.csv')
+```
+
+```{r}
+weather=merge(temp,preci)
+write_csv(weather,file = 'weather.csv')
+```
